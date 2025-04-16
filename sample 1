@@ -7,10 +7,7 @@ import datetime
 import openai
 import wikipedia
 
-#  Set your OpenAI API Key
 openai.api_key = "YOUR_OPENAI_API_KEY"
-
-# Initialize TTS
 engine = pyttsx3.init()
 engine.setProperty('rate', 150)
 
@@ -82,7 +79,6 @@ def handle_command(command):
         gpt_response = ask_gpt(command)
         speak(gpt_response)
 
-# 🧠 Main Loop
 speak("Hello, I am your assistant. How can I help you?")
 while True:
     user_input = listen()
