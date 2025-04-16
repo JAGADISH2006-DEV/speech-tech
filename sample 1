@@ -1,0 +1,90 @@
+import speech_recognition as sr
+import pyttsx3
+import pyautogui
+import webbrowser
+import os
+import datetime
+import openai
+import wikipedia
+
+#  Set your OpenAI API Key
+openai.api_key = "YOUR_OPENAI_API_KEY"
+
+# Initialize TTS
+engine = pyttsx3.init()
+engine.setProperty('rate', 150)
+
+def speak(text):
+    print("JARVIS:", text)
+    engine.say(text)
+    engine.runAndWait()
+
+def listen():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        audio = r.listen(source)
+        try:
+            command = r.recognize_google(audio)
+            print("You said:", command)
+            return command.lower()
+        except sr.UnknownValueError:
+            speak("Sorry, I didn't catch that.")
+        except sr.RequestError:
+            speak("Speech service error.")
+        return ""
+
+def ask_gpt(prompt):
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Error from GPT: {e}"
+
+def handle_command(command):
+    if "open notepad" in command:
+        speak("Opening Notepad")
+        os.system("notepad")
+    elif "open browser" in command:
+        speak("Opening browser")
+        webbrowser.open("https://google.com")
+    elif "search" in command:
+        query = command.replace("search", "").strip()
+        url = f"https://www.google.com/search?q={query}"
+        speak(f"Searching Google for {query}")
+        webbrowser.open(url)
+    elif "time" in command:
+        now = datetime.datetime.now().strftime("%I:%M %p")
+        speak(f"The time is {now}")
+    elif "screenshot" in command:
+        filename = f"screenshot_{datetime.datetime.now().strftime('%H%M%S')}.png"
+        pyautogui.screenshot().save(filename)
+        speak(f"Screenshot saved as {filename}")
+    elif "wikipedia" in command:
+        topic = command.replace("wikipedia", "").strip()
+        try:
+            result = wikipedia.summary(topic, sentences=2)
+            speak(result)
+        except:
+            speak("Couldn't find anything on Wikipedia.")
+    elif "play music" in command:
+        music_path = "C:\\Users\\YourUsername\\Music\\song.mp3"
+        os.startfile(music_path)
+        speak("Playing music.")
+    elif "exit" in command or "goodbye" in command:
+        speak("Goodbye!")
+        exit()
+    else:
+        gpt_response = ask_gpt(command)
+        speak(gpt_response)
+
+# 🧠 Main Loop
+speak("Hello, I am your assistant. How can I help you?")
+while True:
+    user_input = listen()
+    if user_input:
+        handle_command(user_input)
